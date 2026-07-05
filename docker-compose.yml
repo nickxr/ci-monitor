@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  # PostgreSQL database service.
+  db:
+    image: postgres:15
+    container_name: ci_monitor_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ci_monitor
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data   # Persist data between restarts
+
+  # Go application service.
+  # The app depends on the database, so `depends_on` is required.
+  # pass environment variables directly to avoid having to copy the `.env` file into the app
+  app:
+    build: .
+    container_name: ci_monitor_app
+    depends_on:
+      - db
+    environment:
+      PORT: 8080
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: ci_monitor
+      GITHUB_SECRET: my_secret_token
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./migrations:/migrations   # Mount migrations so they can be run
+
+volumes:
+  pg_data:
