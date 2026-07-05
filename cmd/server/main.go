@@ -6,20 +6,40 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/nickxr/ci-monitor/internal/config"
+	"github.com/nickxr/ci-monitor/internal/db"
+	"github.com/nickxr/ci-monitor/internal/handler"
+	"github.com/nickxr/ci-monitor/internal/repository"
 )
 
 func main() {
-	r := chi.NewRouter()
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		log.Fatal("config load:", err)
+	}
 
+	dsn := "postgres://" + cfg.DBUser + ":" + cfg.DBPassword + "@" + cfg.DBHost + ":" + cfg.DBPort + "/" + cfg.DBName + "?sslmode=disable"
+	dbPool, err := db.NewDB(dsn)
+	if err != nil {
+		log.Fatal("db connect:", err)
+	}
+	defer dbPool.Close()
+
+	repo := repository.NewBuildRepository(dbPool)
+
+	r := chi.NewRouter()
 	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		_, _ = w.Write([]byte("CI Monitor is running!"))
+		w.Write([]byte("CI Monitor is running!"))
 	})
 
-	log.Println("Server starting on :8080")
+	r.Post("/webhook", handler.WebhookHandler(repo))
 
-	if err := http.ListenAndServe(":8080", r); err != nil {
+	log.Println("starting server on :" + cfg.Port)
+
+	if err := http.ListenAndServe(":"+cfg.Port, r); err != nil {
 		log.Fatal(err)
 	}
 }
