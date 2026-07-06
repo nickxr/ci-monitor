@@ -37,9 +37,14 @@ func main() {
 
 	r.Post("/webhook", handler.WebhookHandler(repo))
 
-	log.Println("starting server on :" + cfg.Port)
+	//GET: builds history and stats
+	r.Get("/builds", handler.BuildHandler(repo))
+	r.Get("/builds/{id}", handler.BuildByIDHandler(repo))
+	r.Get("/stats", handler.StatsHandler(repo))
 
+	log.Println("starting server on :" + cfg.Port)
 	if err := http.ListenAndServe(":"+cfg.Port, r); err != nil {
+
 		log.Fatal(err)
 	}
 }
