@@ -44,3 +44,21 @@ func (r *BuildRepository) GetAll(ctx context.Context) ([]model.Build, error) {
 	}
 	return builds, nil
 }
+
+func (r *BuildRepository) GetByID(ctx context.Context, id int64) (*model.Build, error) {
+	var b model.Build
+	query := `SELECT id,repo, branch,commit_hash,status,created_at, updated_at FROM builds WHERE id = $1`
+	err := r.db.QueryRow(ctx, query, id).Scan(
+		&b.ID,
+		&b.Repo,
+		&b.Branch,
+		&b.CommitHash,
+		&b.Status,
+		&b.CreatedAt,
+		&b.UpdatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &b, nil
+}

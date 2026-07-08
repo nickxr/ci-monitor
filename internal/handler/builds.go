@@ -24,17 +24,20 @@ func BuildHandler(repo *repository.BuildRepository) http.HandlerFunc {
 func BuildByIDHandler(repo *repository.BuildRepository) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		idStr := chi.URLParam(r, "id")
-		_, err := strconv.ParseInt(idStr, 10, 64)
+		id, err := strconv.ParseInt(idStr, 10, 64)
 		if err != nil {
 			http.Error(w, "invalid id", http.StatusBadRequest)
 			return
 		}
 
+		build, err := repo.GetByID(r.Context(), id)
+		if err != nil {
+			http.Error(w, "build not found", http.StatusNotFound)
+			return
+		}
+
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{
-			"message": "not implemented yet",
-			"id":      idStr,
-		})
+		json.NewEncoder(w).Encode(build)
 	}
 }
 
