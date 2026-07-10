@@ -41,7 +41,7 @@ A lightweight REST API service that receives GitHub webhook events and stores bu
     "ref": "refs/heads/main",
     "after": "abc123def456",
     "status": "success"
-  }'
+   }'
   
 ## API Endpoints
 
