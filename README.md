@@ -22,10 +22,27 @@ A lightweight REST API service that receives GitHub webhook events and stores bu
    cd ci-monitor
 
 2. Start PostgreSQL:
-3. Run migrations:
-4. Start the server:
-5. Send a test webhook:
+   ```bash
+   docker compose up -d db
 
+3. Run migrations:
+   ```bash
+   make migrate
+
+5. Start the server:
+   ```bash
+   make run
+6. Send a test webhook:
+   ```bash
+   curl -X POST http://localhost:8080/webhook \
+   -H "Content-Type: application/json" \
+   -d '{
+    "repository": {"full_name": "nickxr/ci-monitor"},
+    "ref": "refs/heads/main",
+    "after": "abc123def456",
+    "status": "success"
+  }'
+  
 ## API Endpoints
 
 | Method |  Endpoint   | Description |
